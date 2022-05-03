@@ -46,9 +46,11 @@ def edit_profile():
 def post_question():
     return render_template('post_question.html')
 
-@app.route('/question')
-def question():
-    return render_template('question.html')
+@app.route('/question/<int:question_id>')
+def question(question_id):
+    query = database.Question.select().where(database.Question.c.qid == question_id)
+    question = database.Connect().execute(query).fetchone()
+    return render_template('question.html', question=question)
 
 @app.route('/post/answer')
 def post_answer():
@@ -73,6 +75,13 @@ def test():
             break
     template = ' '.join(['<p>%s</p>' % user for user in users])
     return Response(template)
+
+@app.before_request
+def before_request():
+    # Verify or create user, populate g context, log request
+    user_cookie = request.cookies.get('user')
+    # if user exists, populate g context
+        # g.user = user
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
