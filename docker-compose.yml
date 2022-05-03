@@ -20,3 +20,15 @@ services:
       - 80:80
     volumes:
       - ./webserver:/var/www/html
+
+  flask:
+    build: './flask'
+    container_name: flask
+    restart: unless-stopped
+    ports:
+      - 5000:5000 # test port
+      # - 8080:8080 # prod port 
+    volumes:
+      - ./flask:/src
+    environment:
+      - STAGE=dev
