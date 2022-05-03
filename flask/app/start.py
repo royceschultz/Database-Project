@@ -1,6 +1,7 @@
 # App Dependencies
 from flask import Flask
 from flask import request, Response, render_template, url_for
+import database
 
 app = Flask(__name__)
 
@@ -8,12 +9,25 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
-@app.route('/register')
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    return render_template('register.html')
+    if request.method == 'GET':
+        return render_template('register.html')
+    else:
+        return Response('<h1>Thanks for registering</h1>')
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'GET':
+        return render_template('login.html')
+    assert request.method == 'POST'
+    usename = request.form['username']
+    password = request.form['password']
+    if usename == 'admin' and password == 'password':
+        # Set cookie
+        response = Response('<h1>You are logged in</h1>')
+        response.set_cookie('username', usename, expires=None)
+        return response
     return render_template('login.html')
 
 @app.route('/logout')
@@ -48,6 +62,17 @@ def vote():
 def search():
     return render_template('search.html')
 
+@app.route('/test')
+def test():
+    conn = database.Connect()
+    res = conn.execute('SELECT * FROM User')
+    users = []
+    for row in res:
+        users.append(row)
+        if len(users) > 10:
+            break
+    template = ' '.join(['<p>%s</p>' % user for user in users])
+    return Response(template)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
