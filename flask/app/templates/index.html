@@ -2,4 +2,22 @@
 
 {% block content %}
 hello world
+
+<h1>Recent Questions</h1>
+<div>
+    {% for question in questions %}
+        <div>
+            <a href="{{ url_for('question', question_id=question.qid) }}">
+                <h2>{{ question.title }}</h2>
+            </a>
+            <p>
+                {{ question.dt_created }}
+
+            </p>
+            <a href="{{ url_for('profile', username=question.username) }}">
+                <h3>{{ question.username }}</h3>
+            </a>
+        </div>
+    {% endfor %}
+</div>
 {% endblock %}

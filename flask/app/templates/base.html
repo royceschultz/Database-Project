@@ -4,6 +4,56 @@
     <title>Document</title>
 </head>
 <body>
+    <div>
+        <a href="{{ url_for('home') }}">
+            <h1>Home</h1>
+        </a>
+    </div>
+    {% if g.user %}
+        <div>
+            <!-- New Question Button -->
+            <a href="{{ url_for('new_question') }}">
+                <h1>New Question</h1>
+            </a>
+        </div>
+        <div>
+            <a href="{{ url_for('profile', username=g.user) }}">
+                <h1>Profile</h1>
+            </a>
+        </div>
+        <div>
+            <a href="{{ url_for('logout') }}">
+                <h1>Logout</h1>
+            </a>
+        </div>
+    {% elif 'login' not in request.path %}
+    <!-- TODO: Handle the above condition more robustly -->
+        <div>
+            <a href="{{ url_for('login') }}">
+                <h1>Login</h1>
+            </a>
+        </div>
+        <div>
+            <a href="{{ url_for('register') }}">
+                <h1>Register</h1>
+            </a>
+        </div>
+    {% endif %}
+
+    <div>
+        <!-- Search Form -->
+        <form action="{{ url_for('search') }}" method="get">
+            <label for="search">Search:</label>
+            <input type="text" name="search" id="search" value="">
+            <input type="submit" value="Search">
+        </form>
+    </div>
+
+    {% if message %}
+        <div>
+            <p> {{message}} </p>
+        </div>
+    {% endif %}
     {% block content %}{% endblock %}
 </body>
 </html>

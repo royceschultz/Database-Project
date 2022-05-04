@@ -20,9 +20,11 @@ CREATE TABLE User (
 );
 
 CREATE TABLE UserSession (
-    username varchar(64) PRIMARY KEY,
+    username varchar(64) NOT NULL,
     session_id varchar(256) NOT NULL,
-    dt_created datetime DEFAULT CURRENT_TIMESTAMP
+    dt_created datetime DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (username, session_id),
+    FOREIGN KEY (username) REFERENCES User(username)
 );
 
 CREATE TABLE Topic (
