@@ -8,8 +8,10 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
+    # Home page for all users
+    # Shows recently posted questions
     query = database.Question.select().order_by(database.Question.c.qid.desc()).limit(10)
-    with database.Connect as connection:
+    with database.Connect() as connection:
         res = connection.execute(query)
         questions = []
         for row in res:
@@ -18,6 +20,7 @@ def home():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    # Register page for new users to create an account
     if request.method == 'GET':
         return render_template('register.html')
     else:
@@ -39,6 +42,7 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Login page for existing users to log in
     if request.method == 'GET':
         return render_template('login.html')
     assert request.method == 'POST'
@@ -50,14 +54,15 @@ def login():
     if user is None:
         return render_template('login.html', message='User Not Found')
     if user.password == password:
-        # TODO: Create a user session
         session_id = ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', k=128))
         session_query = database.UserSession.insert().values(session_id=session_id, username=user.username)
         try:
-            database.Connect().execute(session_query)
-            # set user cookie
             response = redirect(url_for('home'))
-            response.set_cookie('session_token', ';'.join([user.username, session_id]))
+            with database.Connect() as connection:
+                # Save new session to database
+                database.connection.execute(session_query)
+                # Set user cookie
+                response.set_cookie('session_token', ';'.join([user.username, session_id]))
             return response
         except Exception as e:
             return render_template('login.html', message=e)
@@ -66,12 +71,13 @@ def login():
 
 @app.route('/logout')
 def logout():
+    # Delete UserSession from Database, if it exists
+    # Then redirect to login page
     if g.session_id:
         delete_query = database.UserSession.delete().where(database.UserSession.c.session_id == g.session_id, database.UserSession.c.username == g.user)
         database.Connect().execute(delete_query)
         g.bad_cookie = True
-        return redirect(url_for('login'))
-    return render_template('logout.html')
+    return redirect(url_for('login'))
 
 @app.route('/profile/<username>')
 def profile(username):
@@ -83,6 +89,7 @@ def edit_profile():
 
 @app.route('/post/question', methods=['GET', 'POST'])
 def new_question():
+    # Page for users to post a new question
     if request.method == 'GET':
         return render_template('new_question.html')
     if request.method == 'POST':
@@ -101,6 +108,7 @@ def new_question():
 
 @app.route('/question/<int:question_id>')
 def question(question_id):
+    # View for a specific question
     query = database.Question.select().where(database.Question.c.qid == question_id)
     question = database.Connect().execute(query).fetchone()
     return render_template('question.html', question=question)
@@ -117,21 +125,9 @@ def vote():
 def search():
     return render_template('search.html')
 
-@app.route('/test')
-def test():
-    conn = database.Connect()
-    res = conn.execute('SELECT * FROM User')
-    users = []
-    for row in res:
-        users.append(row)
-        if len(users) > 10:
-            break
-    template = ' '.join(['<p>%s</p>' % user for user in users])
-    return Response(template)
-
 @app.before_request
 def before_request():
-    # Verify or create user, populate g context, log request
+    # Check if user is logged in via session_token cookie
     session_token = request.cookies.get('session_token')
     if session_token is not None:
         session_token = session_token.split(';')
