@@ -32,3 +32,13 @@ services:
       - ./flask:/src
     environment:
       - STAGE=dev
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    user: '472'
+    volumes:
+      - ./volumes/grafana:/var/lib/grafana
+    restart: unless-stopped
