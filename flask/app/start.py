@@ -125,12 +125,25 @@ def question(question_id):
     # View for a specific question
     query = database.Question.select().where(database.Question.c.qid == question_id)
     question = database.Connect().execute(query).fetchone()
-    return render_template('question.html', question=question)
+    assert question is not None
+    # Get all answers for this question
+    answers_query = database.Answer.select().where(database.Answer.c.question == question_id)
+    answers = database.Connect().execute(answers_query).fetchall()
+    return render_template('question.html', question=question, answers=answers)
 
-@app.route('/post/answer')
+@app.route('/post/answer', methods=['POST'])
 @auth.require_login
-def post_answer():
-    return render_template('post_answer.html')
+def submit_answer():
+    question_id = request.form['question_id']
+    body = request.form['answer']
+    # Validate answer
+    assert(len(body) > 10)
+    insert_query = database.Answer.insert().values(question=question_id, body=body, username=g.user)
+    try:
+        database.Connect().execute(insert_query)
+        return redirect(url_for('question', question_id=question_id))
+    except Exception as e:
+        return redirect(url_for('home'))
 
 @app.route('/vote')
 @auth.require_login

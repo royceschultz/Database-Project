@@ -10,4 +10,18 @@
 <p>No question found.</p>
 {% endif %}
 
+<!-- Submit Answer Form -->
+<form action="{{ url_for('submit_answer') }}" method="post">
+    <label for="answer">Answer</label>
+    <input type="text" id="answer" name='answer' placeholder="Answer">
+    <input type="hidden" name="question_id" value="{{ question.qid }}">
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+{% for answer in answers %}
+
+    <h3>{{ answer }}</h3>
+
+{% endfor %}
+
 {% endblock %}
