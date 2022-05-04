@@ -1,8 +1,11 @@
 # App Dependencies
 from flask import Flask
 from flask import request, Response, render_template, url_for, redirect, g
-import database
 import random
+
+# local imports
+import database
+import auth
 
 app = Flask(__name__)
 
@@ -43,33 +46,34 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     # Login page for existing users to log in
-    if request.method == 'GET':
+    if request.method == 'GET': 
         return render_template('login.html')
     assert request.method == 'POST'
+    # Get username and password from form
     usename = request.form['username']
     password = request.form['password']
+    # Query database for user
     query = database.User.select().where(database.User.c.username == usename)
     res = database.Connect().execute(query)
     user = res.fetchone()
-    if user is None:
+    if user is None: # User not found
         return render_template('login.html', message='User Not Found')
-    if user.password == password:
-        session_id = ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', k=128))
-        session_query = database.UserSession.insert().values(session_id=session_id, username=user.username)
-        try:
-            response = redirect(url_for('home'))
-            with database.Connect() as connection:
-                # Save new session to database
-                database.connection.execute(session_query)
-                # Set user cookie
-                response.set_cookie('session_token', ';'.join([user.username, session_id]))
-            return response
-        except Exception as e:
-            return render_template('login.html', message=e)
-        return url_for('home')
-    return render_template('login.html', message='Incorrect Password')
+    if user.password != password: # Incorrect password
+        return render_template('login.html', message='Incorrect Password')
+    # User found, log them in
+    # Genarate a new session id
+    session_id = ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', k=128))
+    # Insert session id into database
+    session_query = database.UserSession.insert().values(session_id=session_id, username=user.username)
+    with database.Connect() as connection: # Save new session to database
+        connection.execute(session_query)
+    # Set user cookie
+    response = redirect(url_for('home'))
+    response.set_cookie('session_token', ';'.join([user.username, session_id]))
+    return response
 
 @app.route('/logout')
+@auth.require_login
 def logout():
     # Delete UserSession from Database, if it exists
     # Then redirect to login page
@@ -80,14 +84,24 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/profile/<username>')
+@auth.require_login
 def profile(username):
-    return render_template('profile.html')
+    query = database.User.select().where(database.User.c.username == username)
+    with database.Connect() as connection:
+        res = connection.execute(query)
+        user = res.fetchone()
+    is_self = False
+    if 'user' in g:
+        if g.user == username:
+            is_self = True
+    return render_template('profile.html', is_self=is_self, user=user)
 
-@app.route('/profile/edit')
+@app.route('/edit/profile/')
 def edit_profile():
     return render_template('edit_profile.html')
 
 @app.route('/post/question', methods=['GET', 'POST'])
+@auth.require_login
 def new_question():
     # Page for users to post a new question
     if request.method == 'GET':
@@ -114,10 +128,12 @@ def question(question_id):
     return render_template('question.html', question=question)
 
 @app.route('/post/answer')
+@auth.require_login
 def post_answer():
     return render_template('post_answer.html')
 
 @app.route('/vote')
+@auth.require_login
 def vote():
     return render_template('vote.html')
 
