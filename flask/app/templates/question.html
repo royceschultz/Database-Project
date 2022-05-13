@@ -2,26 +2,89 @@
 
 {% block content %}
 
-<h1>Question</h1>
-{% if question %}
-<h2>{{ question.text }}</h2>
-{{ question }}
-{% else %}
-<p>No question found.</p>
-{% endif %}
+<div class="d-flex flex-row mb-3">
+    <div class="mr-4">
+        <a href="{{ url_for('vote_question', question_id=question.qid, vote=1)}}">
+            <!-- SVG Upvote icon -->
+            <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-up-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-10.646.354a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 6.207V11a.5.5 0 0 1-1 0V6.207L5.354 8.354z"/>
+        </a>
+        <p>{{question.score}}</p>
+        <a href="{{ url_for('vote_question', question_id=question.qid, vote=-1)}}">
+            <!-- SVG Downvote icon -->
+            <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-down-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 5.5a.5.5 0 0 0-1 0v4.793L5.354 7.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 9.793V5.5z"/>
+        </a>
+    </div>
+    
+    <div>
+        <h1>{{ question.title }}</h1>
+        <p>{{ question.body }}</p>
+    </div>
+</div>
+
 
 <!-- Submit Answer Form -->
-<form action="{{ url_for('submit_answer') }}" method="post">
-    <label for="answer">Answer</label>
-    <input type="text" id="answer" name='answer' placeholder="Answer">
-    <input type="hidden" name="question_id" value="{{ question.qid }}">
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+<div class="my-5">
+    <form action="{{ url_for('submit_answer') }}" method="post">
+        <label for="answer">Answer</label>
+        <input type="text" id="answer" name='answer' placeholder="Answer">
+        <input type="hidden" name="question_id" value="{{ question.qid }}">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
 
 {% for answer in answers %}
-
-    <h3>{{ answer }}</h3>
-
+    <div class="card">
+        <div class="d-flex flex-row p-2">
+            <div class="mr-4">
+                <a href="{{ url_for('vote_answer', answer_id=answer.aid, vote=1)}}">
+                    <!-- SVG Upvote icon -->
+                    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-up-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-10.646.354a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 6.207V11a.5.5 0 0 1-1 0V6.207L5.354 8.354z"/>
+                </a>
+                <p>{{answer.score}}</p>
+                <a href="{{ url_for('vote_answer', answer_id=answer.aid, vote=-1)}}">
+                    <!-- SVG Downvote icon -->
+                    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-down-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 5.5a.5.5 0 0 0-1 0v4.793L5.354 7.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 9.793V5.5z"/>
+                    
+                </a>
+                <div>
+                    {% if answer.is_pinned %}
+                        Pined Answer
+                    {% endif %}
+                    {% if g.user==question.username %}
+                    <a href="{{ url_for('pin_answer', answer_id=answer.aid)}}">
+                        {% if answer.is_pinned %}
+                            Unpin
+                        {% else %}
+                            Pin
+                        {% endif %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <p>
+                    {{ answer.body }}
+                </p>
+                <div class="card p-2">
+                    <div class="d-flex flex-row">
+                        User:&nbsp
+                        <a href="{{ url_for('profile', username=answer.username) }}">
+                            <h4>{{ answer.username }}</h4>
+                        </a>
+                    </div>
+                    <p>Submitted at {{ answer.dt_created }}</p>
+                </div>
+                
+            </div>
+        </div>
+        
+       
+    </div>
 {% endfor %}
 
 {% endblock %}

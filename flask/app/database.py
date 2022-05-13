@@ -11,5 +11,9 @@ PinnedAnswer = Table('PinnedAnswer', metadata, autoload=True, autoload_with=engi
 QuestionRating = Table('QuestionRating', metadata, autoload=True, autoload_with=engine)
 AnswerRating = Table('AnswerRating', metadata, autoload=True, autoload_with=engine)
 
+# Views
+QuestionScore = Table('QuestionScore', metadata, autoload=True, autoload_with=engine)
+AnswerScore = Table('AnswerScore', metadata, autoload=True, autoload_with=engine)
+
 def Connect():
     return engine.connect()

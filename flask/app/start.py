@@ -124,11 +124,13 @@ def new_question():
 def question(question_id):
     # View for a specific question
     query = database.Question.select().where(database.Question.c.qid == question_id)
+    query = database.QuestionScore.select().where(database.QuestionScore.c.qid == question_id)
     question = database.Connect().execute(query).fetchone()
     assert question is not None
     # Get all answers for this question
-    answers_query = database.Answer.select().where(database.Answer.c.question == question_id)
+    answers_query = database.AnswerScore.select().where(database.AnswerScore.c.question == question_id)
     answers = database.Connect().execute(answers_query).fetchall()
+    print(len(answers))
     return render_template('question.html', question=question, answers=answers)
 
 @app.route('/post/answer', methods=['POST'])
@@ -145,10 +147,94 @@ def submit_answer():
     except Exception as e:
         return redirect(url_for('home'))
 
-@app.route('/vote')
+@app.route('/vote/question')
 @auth.require_login
-def vote():
-    return render_template('vote.html')
+def vote_question():
+    # get user and question and vote
+    user = g.user
+    question_id = request.args.get('question_id')
+    vote = int(request.args.get('vote'))
+    assert vote in [1, -1]
+    vote_bool = vote > 0
+    # Check if user has already voted on this question
+    query = database.QuestionRating.select().where(database.QuestionRating.c.question == question_id, database.QuestionRating.c.username == user)
+    conn = database.Connect()
+    existing_rating = conn.execute(query).fetchone()
+    # If vote exists and is the same as the new vote, delete the vote
+    if existing_rating is not None and existing_rating.is_upvote == vote_bool:
+            # Undo vote
+            delete_query = database.QuestionRating.delete().where(database.QuestionRating.c.question == question_id, database.QuestionRating.c.username == user)
+            conn.execute(delete_query)
+    else: # Update users vote to new vote
+        vote_query = f'''
+            REPLACE INTO QuestionRating (question, is_upvote, username)
+                VALUES ({question_id}, {vote==1}, '{user}')
+        '''
+        database.Connect().execute(vote_query)
+    return redirect(url_for('question', question_id=question_id))
+
+@app.route('/vote/answer')
+@auth.require_login
+def vote_answer():
+    # get user, answer and vote
+    user = g.user
+    answer_id = request.args.get('answer_id')
+    vote = int(request.args.get('vote'))
+    assert vote in [1, -1]
+    vote_bool = vote > 0
+    # Check if user has already voted on this question
+    query = database.AnswerRating.select().where(database.AnswerRating.c.answer == answer_id, database.AnswerRating.c.username == user)
+    conn = database.Connect()
+    existing_rating = conn.execute(query).fetchone()
+    # If vote exists and is the same as the new vote, delete the vote
+    if existing_rating is not None and existing_rating.is_upvote == vote_bool:
+            # Undo vote
+            delete_query = database.AnswerRating.delete().where(database.AnswerRating.c.answer == answer_id, database.AnswerRating.c.username == user)
+            conn.execute(delete_query)
+    else: # Update users vote to new vote
+        vote_query = f'''
+            REPLACE INTO AnswerRating (answer, is_upvote, username)
+            VALUES ({answer_id}, {vote==1}, '{user}')
+        '''
+        database.Connect().execute(vote_query)
+
+    # Get question id from answer
+    query = database.Answer.select().where(database.Answer.c.aid == answer_id)
+    question_id = database.Connect().execute(query).fetchone().question
+    return redirect(url_for('question', question_id=question_id))
+
+@app.route('/pin/answer')
+@auth.require_login
+def pin_answer():
+    # get user and answer
+    user = g.user
+    answer_id = request.args.get('answer_id')
+    conn = database.Connect()
+    # Get question from answer
+    query = database.Answer.select().where(database.Answer.c.aid == answer_id)
+    question_id = conn.execute(query).fetchone().question
+    # Check user is op of question
+    query = database.Question.select().where(database.Question.c.qid == question_id, database.Question.c.username == user)
+    if conn.execute(query).fetchone() is None:
+        # ERROR: User is not op of question
+        return
+    else:
+        # Check if answer is already pinned
+        query = database.PinnedAnswer.select().where(database.PinnedAnswer.c.answer == answer_id)
+        if conn.execute(query).fetchone() is not None:
+            # Already pinned, remove it
+            delete_query = database.PinnedAnswer.delete().where(database.PinnedAnswer.c.answer == answer_id)
+            conn.execute(delete_query)
+        else:
+            # Pin answer
+            insert_query = f'''
+                REPLACE INTO PinnedAnswer (question, answer)
+                VALUES ({question_id}, {answer_id})
+            '''
+            conn.execute(insert_query)
+    return redirect(url_for('question', question_id=question_id))
+
+
 
 @app.route('/search')
 def search():
