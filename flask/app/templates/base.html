@@ -47,15 +47,13 @@
             </a>
             {% endif %}
         </div>
-    
+    </div>
+    <div class="container">
         {% if message %}
             <div>
                 <p> {{message}} </p>
             </div>
         {% endif %}
-        
-    </div>
-    <div class="container">
         <!-- Main Content -->
         {% block content %}{% endblock %}
     </div>

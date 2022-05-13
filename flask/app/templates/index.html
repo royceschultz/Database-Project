@@ -20,5 +20,22 @@
             
         </div>
     {% endfor %}
+
+    <!-- Page Navigation -->
+    <!-- Centered in div -->
+    <div class="d-flex justify-content-center">
+        {% if page > 1 %}
+            <a href="{{ url_for('home') }}">
+                <button class="btn btn-primary">home</button>
+            <a href="{{ url_for('home', page=page-1) }}">
+                <button class="btn btn-primary">&#10094;</button>
+            </a>
+        {% endif %}
+        {% if next_page %}
+            <a href="{{ url_for('home', page=page+1) }}">
+                <button class="btn btn-primary">&#10095;</button>
+            </a>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

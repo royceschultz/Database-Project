@@ -13,13 +13,16 @@ app = Flask(__name__)
 def home():
     # Home page for all users
     # Shows recently posted questions
-    query = database.Question.select().order_by(database.Question.c.qid.desc()).limit(10)
+    PAGE_SIZE = 5
+    page = request.args.get('page', 1, type=int)
+    offset = (page - 1) * PAGE_SIZE
+    query = database.Question.select().order_by(database.Question.c.qid.desc()).offset(offset).limit(PAGE_SIZE)
+    questions = []
     with database.Connect() as connection:
         res = connection.execute(query)
-        questions = []
         for row in res:
             questions.append(row)
-    return render_template('index.html', questions=questions)
+    return render_template('index.html', questions=questions, page=page, next_page=(len(questions) == PAGE_SIZE))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -110,13 +113,13 @@ def new_question():
         title = request.form['title']
         body = request.form['body']
         topic = request.form['topic']
-        insert_query = database.Question.insert().values(title=title, body=body, topic=topic, username=g.user).returning(database.Question.c.qid)
+        insert_query = database.Question.insert().values(title=title, body=body, topic=topic, username=g.user)
         try:
             res = database.Connect().execute(insert_query)
             data = []
             for r in res:
                 data.append(r)
-            return render_template('new_question.html', message=data)
+            return render_template('new_question.html', message=res.keys())
         except Exception as e:
             return render_template('new_question.html', message=e)
 
