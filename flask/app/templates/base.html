@@ -6,19 +6,25 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <body>
-    <div>
-        <a href="{{ url_for('home') }}">
-            <h1>Home</h1>
-        </a>
-    </div>
-    {% if g.user %}
+    <div class="d-flex flex-row p-2 justify-content-between">
+        <div> <!-- Home Icon -->
+            <a href="{{ url_for('home') }}">
+                <h1>Home</h1>
+            </a>
+        </div>
+
+        <div> <!-- Search Bar -->
+            {% include "search_form.html" %}
+        </div>
+
+        <div> <!-- New Question Button -->
+            <a href="{{ url_for('new_question') }}">
+                <button class="btn btn-primary">New Question</button>
+            </a>
+        </div>
+        
         <div class="d-flex flex-row">
-            <div>
-                <!-- New Question Button -->
-                <a href="{{ url_for('new_question') }}">
-                    <button class="btn btn-primary">New Question</button>
-                </a>
-            </div>
+            {% if g.user %}
             <div>
                 <a href="{{ url_for('profile', username=g.user) }}">
                     <button class="btn btn-primary">Profile</button>
@@ -27,35 +33,32 @@
             <a href="{{ url_for('logout') }}">
                 <button class="btn btn-primary">Logout</button>
             </a>
-        </div>
-        
-    {% elif 'login' not in request.path %}
-    <!-- TODO: Handle the above condition more robustly -->
-        <div>
+            {% endif %}
+
+            {% if 'login' not in request.endpoint %}
             <a href="{{ url_for('login') }}">
                 <button class="btn btn-primary">Login</button>
             </a>
+            {% endif %}
+
+            {% if 'register' not in request.endpoint %}
             <a href="{{ url_for('register') }}">
                 <button class="btn btn-primary">Register</button>
             </a>
+            {% endif %}
         </div>
-    {% endif %}
-
-    <div>
-        <!-- Search Form -->
-        <form action="{{ url_for('search') }}" method="get">
-            <label for="search">Search:</label>
-            <input type="text" name="search" id="search" value="">
-            <input type="submit" value="Search">
-        </form>
+    
+        {% if message %}
+            <div>
+                <p> {{message}} </p>
+            </div>
+        {% endif %}
+        
     </div>
-
-    {% if message %}
-        <div>
-            <p> {{message}} </p>
-        </div>
-    {% endif %}
-    {% block content %}{% endblock %}
+    <div class="container">
+        <!-- Main Content -->
+        {% block content %}{% endblock %}
+    </div>
 </body>
 
 </html>
