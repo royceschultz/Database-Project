@@ -327,12 +327,17 @@ def pin_answer():
 
 @app.route('/search')
 def search():
+    COURSE_LIMIT = 1024
+    FINE_LIMIT = 64
+
     q = request.args.get('q')
     processed_q = ', '.join(f'ROW("{word}")' for word in q.split(' '))
 
     title_weight = request.args.get('title_weight', 1)
     body_weight = request.args.get('body_weight', 1)
     answer_weight = request.args.get('answer_weight', 1)
+    min_answers = request.args.get('min_answers', 0)
+    order_by = request.args.get('order_by', 'relevance')
 
     query = f'''
         WITH
@@ -345,6 +350,7 @@ def search():
             JOIN Keywords
         WHERE title RLIKE CONCAT('(^|\b)', keyword, '($|\b)')
         GROUP BY qid
+        LIMIT {COURSE_LIMIT}
     ),
     QuestionBodyMatches(qid, n_body_matches) AS (
         SELECT qid, count(*) as n_title_matches
@@ -352,6 +358,7 @@ def search():
             JOIN Keywords
         WHERE body RLIKE CONCAT('(^|\b)', keyword, '($|\b)')
         GROUP BY qid
+        LIMIT {COURSE_LIMIT}
     ),
     AnswerMatches(qid, n_answer_matches) AS (
         SELECT qid, count(*) as n_answer_matches
@@ -359,6 +366,7 @@ def search():
             JOIN Keywords
         WHERE body RLIKE CONCAT('(^|\b)', keyword, '($|\b)')
         GROUP BY qid
+        LIMIT {COURSE_LIMIT}
     ),
     AllMatches(qid, n_title_matches, n_body_matches, n_answer_matches) AS (
         SELECT Q.qid,
@@ -377,7 +385,9 @@ def search():
     )
     SELECT Relevance.relevance, QuestionScore.*
     FROM Relevance NATURAL JOIN QuestionScore
-    ORDER BY relevance DESC;
+    WHERE n_answers >= {min_answers}
+    ORDER BY {order_by} DESC
+    LIMIT {FINE_LIMIT};
     '''
     conn = database.Connect()
     results = conn.execute(query).fetchall()

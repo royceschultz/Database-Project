@@ -6,19 +6,37 @@
     </div>
     {% if request.endpoint in ['home', 'search'] and request.args.get('q') %}
     <!-- Advanced filters -->
-    <!-- Title Weight -->
-    <label for="title_weight">Title Weight:</label>
-    <input type="number" name="title_weight" id="title_weight" value="{{request.args.get('title_weight', 1)}}">
-    <br>
-    <!-- Body Weight -->
-    <label for="body_weight">Body Weight:</label>
-    <input type="number" name="body_weight" id="body_weight" value="{{request.args.get('body_weight', 1)}}">
-    <br>
-    <!-- Answer Weight -->
-    <label for="answer_weight">Answer Weight:</label>
-    <input type="number" name="answer_weight" id="answer_weight" value="{{request.args.get('answer_weight', 1)}}">
-    <br>
-    {% endif %}
+    <div class="form-group"> 
+        <!-- Relevance weighting -->
+        <label for="title_weight">Title Weight:</label>
+        <input type="number" name="title_weight" id="title_weight" value="{{request.args.get('title_weight', 1)}}">
+        <br>
+        <label for="body_weight">Body Weight:</label>
+        <input type="number" name="body_weight" id="body_weight" value="{{request.args.get('body_weight', 1)}}">
+        <br>
+        <label for="answer_weight">Answer Weight:</label>
+        <input type="number" name="answer_weight" id="answer_weight" value="{{request.args.get('answer_weight', 1)}}">
+    </div>
+    <div class="form-group">
+        <!-- min n_answers -->
+        <label for="min_answers">Min Answers:</label>
+        <input type="number" name="min_answers" id="min_answers" value="{{request.args.get('min_answers', 0)}}">
+        <br>
+    </div>
+    <div class="form-group">
+        <!-- Order by dropdown -->
+        <label for="order_by">Order By:</label>
+        <select name="order_by" id="order_by">
+            <option value="relevance" {{request.args.get('order_by') == 'relevance' and 'selected'}}>Relevance</option>
+            <option value="score" {{request.args.get('order_by') == 'score' and 'selected'}}>Score</option>
+            <option value="n_answers" {{request.args.get('order_by') == 'n_answers' and 'selected'}}>Number of Answers</option>
+            <option value="dt_created" {{request.args.get('order_by') == 'dt_created' and 'selected'}}>Date Created</option>
+        </select>
+    </div>
 
+    {% endif %}
+    <br>
     <input type="submit" value="Search">
 </form>
+
+<a href="{{ url_for('search', q=request.args.get('q', '')) }}">Clear Filters</a>
