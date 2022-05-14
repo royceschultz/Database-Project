@@ -4,6 +4,20 @@
         <label for="search">Search:</label>
         <input type="text" name="q" id="search" value="{{request.args.get('q', '')}}" required>
     </div>
+    <div class="form-group">
+        <!-- Topic dropdown menu -->
+        <label for="topic">Topic:</label>
+        <select name="topic" id="topic">
+            <option value="">All</option>
+            <option value="Programming" {{request.args.get('topic') == 'Programming' and 'selected'}}>Programming</option>
+            <option value="Python" {{request.args.get('topic') == 'Python' and 'selected'}}>Python</option>
+            <option value="Javascript" {{request.args.get('topic') == 'Javascript' and 'selected'}}>Javascript</option>
+            <option value="SQL" {{request.args.get('topic') == 'SQL' and 'selected'}}>SQL</option>
+            <option value="Announcements" {{request.args.get('topic') == 'Announcements' and 'selected'}}>Announcements</option>
+            <option value="General" {{request.args.get('topic') == 'General' and 'selected'}}>General</option>
+            <option value="Misc" {{request.args.get('topic') == 'Misc' and 'selected'}}>Misc</option>
+        </select>
+    </div>
     {% if request.endpoint in ['home', 'search'] and request.args.get('q') %}
     <!-- Advanced filters -->
     <div class="form-group"> 

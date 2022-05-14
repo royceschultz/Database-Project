@@ -11,7 +11,7 @@ GROUP BY Question.qid;
 
 
 CREATE VIEW QuestionScore AS
-SELECT Question.*, SUM(IF(QuestionRating.is_upvote IS NULL, 1, IF(QuestionRating.is_upvote, 10,-1))) AS score, User.username, QuestionAnswer.n_answers
+SELECT Question.*, SUM(IF(QuestionRating.is_upvote IS NULL, 1, IF(QuestionRating.is_upvote, 10,-1))) AS score, User.username, COALESCE(QuestionAnswer.n_answers, 0) AS n_answers
 FROM Question
 LEFT JOIN QuestionRating ON Question.qid=QuestionRating.qid
 JOIN User on Question.uid=User.uid

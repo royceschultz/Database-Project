@@ -205,12 +205,12 @@ def new_question():
         topic = request.form['topic']
         insert_query = database.Question.insert().values(title=title, body=body, topic=topic, uid=g.user)
         try:
-            res = database.Connect().execute(insert_query)
-            data = []
-            for r in res:
-                data.append(r)
+            conn = database.Connect()
+            res = conn.execute(insert_query)
+            res = conn.execute('SELECT LAST_INSERT_ID();')
+            qid = res.fetchone()[0]
             # TODO Get question id, redirect to question page
-            return render_template('new_question.html', message=res.keys())
+            return redirect(url_for('question', question_id=qid))
         except Exception as e:
             return render_template('new_question.html', message=e)
 
@@ -337,6 +337,7 @@ def search():
 
     q = request.args.get('q')
     processed_q = ', '.join(f'ROW("{word}")' for word in q.split(' '))
+    topic = request.args.get('topic', '')
 
     title_weight = request.args.get('title_weight', 1)
     body_weight = request.args.get('body_weight', 1)
@@ -390,7 +391,9 @@ def search():
     )
     SELECT Relevance.relevance, QuestionScore.*
     FROM Relevance NATURAL JOIN QuestionScore
+    JOIN Topic on QuestionScore.topic = Topic.topic_name
     WHERE n_answers >= {min_answers}
+        AND ('{topic}' LIKE '' OR Topic.topic_name = '{topic}' OR Topic.parent_topic = '{topic}')
     ORDER BY {order_by} DESC
     LIMIT {FINE_LIMIT};
     '''

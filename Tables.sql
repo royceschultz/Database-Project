@@ -108,7 +108,7 @@ CREATE TABLE AnswerRating (
 
 
 INSERT INTO Topic(topic_name) VALUES
-('Programming'), ('Misc');
+('Programming'), ('Misc'), ('Announcements'), ('General');
 
 INSERT INTO Topic(topic_name, parent_topic) VALUES
 ('Python', 'programming'), ('Javascript', 'programming'), ('SQL', 'programming');

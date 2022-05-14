@@ -3,6 +3,8 @@
 {% block content %}
 <!-- Login form -->
 <form method="post">
+    <!-- CSRF token -->
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label for="username">Username:</label>
     <input type="text" name="username" id="username" value="">
     <br>
