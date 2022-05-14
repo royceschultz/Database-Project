@@ -3,22 +3,11 @@
 {% block content %}
 <h1>Recent Questions</h1>
 <div>
+
     {% for question in questions %}
-        <div>
-            <a href="{{ url_for('question', question_id=question.qid) }}">
-                <h2>{{ question.title }}</h2>
-            </a>
-            <div class="d-flex flex-row">
-                <p class="text-muted">
-                    {{ question.dt_created }}
-                </p>
-                <p class="text-muted pl-2">Author:</p>
-                <a href="{{ url_for('profile', username=question.username) }}">
-                    <p>{{ question.username }}</p>
-                </a>
-            </div>
-            
-        </div>
+        {% with question=question %}
+            {% include 'components/question.html' %}
+        {% endwith %}
     {% endfor %}
 
     <!-- Page Navigation -->

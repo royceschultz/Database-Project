@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <h1>{{ username }}'s Answers</h1>
+    {% for answer in answers %}
+        {% with answer=answer %}
+            {% include 'components/answer.html' %}
+        {% endwith %}
+    {% endfor %}
+</div>
+{% endblock %}

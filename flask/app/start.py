@@ -16,7 +16,7 @@ def home():
     PAGE_SIZE = 5
     page = request.args.get('page', 1, type=int)
     offset = (page - 1) * PAGE_SIZE
-    query = database.Question.select().order_by(database.Question.c.qid.desc()).offset(offset).limit(PAGE_SIZE)
+    query = database.QuestionScore.select().order_by(database.QuestionScore.c.dt_created.desc()).offset(offset).limit(PAGE_SIZE)
     questions = []
     with database.Connect() as connection:
         res = connection.execute(query)
@@ -97,8 +97,31 @@ def profile(username):
         is_self = (g.user == username)
     return render_template('profile.html', is_self=is_self, user=user)
 
+@app.route('/profile/questions/<username>', methods=['GET', 'POST'])
+@auth.require_login
+def profile_questions(username):
+    conn = database.Connect()
+    # Lookup uid
+    query = database.User.select().where(database.User.c.username == username)
+    uid = conn.execute(query).fetchone().uid
+    query = database.QuestionScore.select().where(database.QuestionScore.c.uid == uid)
+    questions = conn.execute(query).fetchall()
+    return render_template('profile_questions.html', questions=questions, username=username)
 
-@app.route('/edit/profile/', methods=['GET', 'POST'])
+@app.route('/profile/answers/<username>', methods=['GET', 'POST'])
+@auth.require_login
+def profile_answers(username):
+    conn = database.Connect()
+    # Lookup uid
+    query = database.User.select().where(database.User.c.username == username)
+    uid = conn.execute(query).fetchone().uid
+    query = database.AnswerScore.select().where(database.AnswerScore.c.uid == uid)
+    answers = conn.execute(query).fetchall()
+    return render_template('profile_answers.html', answers=answers, username=username)
+
+
+
+@app.route('/profile/edit', methods=['GET', 'POST'])
 @auth.require_login
 def edit_profile():
     if request.method == 'GET':

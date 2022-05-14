@@ -1,7 +1,4 @@
-Edit profile info
 Select a question topic
-See list of user's questions
-See list of user's answers
 See new answers for user's questions (Notifications?)
 Browse and search site
 Support multi-level topic hierarchy

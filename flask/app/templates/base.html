@@ -35,13 +35,13 @@
             </a>
             {% endif %}
 
-            {% if 'login' not in request.endpoint and user not in g %}
+            {% if 'login' not in request.endpoint and 'user' not in g %}
             <a href="{{ url_for('login') }}">
                 <button class="btn btn-primary">Login</button>
             </a>
             {% endif %}
 
-            {% if 'register' not in request.endpoint and user not in g %}
+            {% if 'register' not in request.endpoint and 'user' not in g %}
             <a href="{{ url_for('register') }}">
                 <button class="btn btn-primary">Register</button>
             </a>

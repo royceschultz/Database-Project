@@ -1,0 +1,21 @@
+<div class="card">
+    {{ answer }}
+    {{ answer.keys() }}
+    <div class="p-2">
+        <div>
+            {{ answer.body }}
+        </div>
+        <div class="card p-2">
+            Answering: <a href="{{ url_for('question', question_id=answer.qid) }}">
+                {{ answer.q_title }}
+            </a>
+            <div class="d-flex flex-row">
+                User:&nbsp
+                <a href="{{ url_for('profile', username=answer.username) }}">
+                    <h4>{{ answer.username }}</h4>
+                </a>
+            </div>
+            <p>Submitted at {{ answer.dt_created }}</p>
+        </div>
+    </div>
+</div>
