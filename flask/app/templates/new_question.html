@@ -3,6 +3,8 @@
 {% block content %}
 <h1>New Question</h1>
 <form method="post">
+    <!-- CSRF token -->
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label for="title">Title:</label>
     <input type="text" name="title" id="title" value="">
     <br>

@@ -1,6 +1,7 @@
 # App Dependencies
 from flask import Flask
 from flask import request, Response, render_template, url_for, redirect, g
+from flask_wtf.csrf import CSRFProtect
 import random
 
 # local imports
@@ -8,6 +9,10 @@ import database
 import auth
 
 app = Flask(__name__)
+csrf = CSRFProtect()
+csrf.init_app(app)
+# CSRF Config
+app.config['SECRET_KEY'] = 'any secret string'
 
 @app.route("/")
 def home():
@@ -236,13 +241,13 @@ def submit_answer():
     except Exception as e:
         return redirect(url_for('home', message=e))
 
-@app.route('/vote/question')
+@app.route('/vote/question', methods=['POST'])
 @auth.require_login
 def vote_question():
     # get user and question and vote
     user = g.user
-    question_id = request.args.get('question_id')
-    vote = int(request.args.get('vote'))
+    question_id = request.form.get('question_id')
+    vote = int(request.form.get('vote'))
     assert vote in [1, -1]
     vote_bool = vote > 0
     # Check if user has already voted on this question
@@ -262,13 +267,13 @@ def vote_question():
         database.Connect().execute(vote_query)
     return redirect(url_for('question', question_id=question_id))
 
-@app.route('/vote/answer')
+@app.route('/vote/answer', methods=['POST'])
 @auth.require_login
 def vote_answer():
     # get user, answer and vote
     user = g.user
-    answer_id = request.args.get('answer_id')
-    vote = int(request.args.get('vote'))
+    answer_id = request.form.get('answer_id')
+    vote = int(request.form.get('vote'))
     assert vote in [1, -1]
     vote_bool = vote > 0
     # Check if user has already voted on this question

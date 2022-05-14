@@ -4,7 +4,9 @@
 
 <div class="d-flex flex-row mb-3">
     <div class="mr-4">
-        <form action="{{ url_for('vote_question') }}">
+        <form action="{{ url_for('vote_question') }}" method="post">
+            <!-- CSRF Token -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="question_id" value="{{ question.qid }}">
             <input type="hidden" name="vote" value="1">
             <button type="submit" class="btn btn-primary">
@@ -17,6 +19,7 @@
         <p>{{question.score}}</p>
 
         <form action="{{ url_for('vote_question') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="question_id" value="{{ question.qid }}">
             <input type="hidden" name="vote" value="-1">
             <button type="submit" class="btn btn-primary">
@@ -37,6 +40,7 @@
 <!-- Submit Answer Form -->
 <div class="my-5">
     <form action="{{ url_for('submit_answer') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label for="answer">Answer</label>
         <input type="text" id="answer" name='answer' placeholder="Answer">
         <input type="hidden" name="question_id" value="{{ question.qid }}">
@@ -49,7 +53,8 @@
     <div class="card">
         <div class="d-flex flex-row p-2">
             <div class="mr-4">
-                <form action="{{ url_for('vote_answer') }}">
+                <form action="{{ url_for('vote_answer') }}", method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="answer_id" value="{{ answer.aid }}">
                     <input type="hidden" name="vote" value="1">
                     <button type="submit" class="btn btn-primary">
