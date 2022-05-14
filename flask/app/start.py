@@ -207,8 +207,7 @@ def new_question():
         try:
             conn = database.Connect()
             res = conn.execute(insert_query)
-            res = conn.execute('SELECT LAST_INSERT_ID();')
-            qid = res.fetchone()[0]
+            qid = res.inserted_primary_key[0]
             # TODO Get question id, redirect to question page
             return redirect(url_for('question', question_id=qid))
         except Exception as e:
