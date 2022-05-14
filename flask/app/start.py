@@ -301,7 +301,7 @@ def pin_answer():
     conn = database.Connect()
     # Get question from answer
     query = database.Answer.select().where(database.Answer.c.aid == answer_id)
-    question_id = conn.execute(query).fetchone().question
+    question_id = conn.execute(query).fetchone().qid
     # Check user is op of question
     query = database.Question.select().where(database.Question.c.qid == question_id, database.Question.c.uid == user)
     if conn.execute(query).fetchone() is None:
@@ -317,7 +317,7 @@ def pin_answer():
         else:
             # Pin answer
             insert_query = f'''
-                REPLACE INTO PinnedAnswer (question, answer)
+                REPLACE INTO PinnedAnswer (qid, aid)
                 VALUES ({question_id}, {answer_id})
             '''
             conn.execute(insert_query)
