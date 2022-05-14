@@ -9,7 +9,8 @@ DROP TABLE IF EXISTS User;
 
 
 CREATE TABLE User (
-    username varchar(64) PRIMARY KEY,
+    uid INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username varchar(64),
     password varchar(256) NOT NULL,
     email varchar(256) NOT NULL,
     city varchar(256),
@@ -20,11 +21,12 @@ CREATE TABLE User (
 );
 
 CREATE TABLE UserSession (
-    username varchar(64) NOT NULL,
+    uid int NOT NULL,
     session_id varchar(256) NOT NULL,
     dt_created datetime DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (username, session_id),
-    FOREIGN KEY (username) REFERENCES User(username)
+    PRIMARY KEY (uid, session_id),
+    FOREIGN KEY (uid) REFERENCES User(uid)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE Topic (
@@ -35,72 +37,72 @@ CREATE TABLE Topic (
 
 Create TABLE Question (
 	qid int AUTO_INCREMENT PRIMARY KEY,
-    username varchar(64),
+    uid int,
     title varchar(256) NOT NULL,
     body text NOT NULL,
     topic varchar(64) NOT NULL,
     dt_created datetime DEFAULT CURRENT_TIMESTAMP,
 
-    UNIQUE (username, title),
+    UNIQUE (uid, title),
     UNIQUE (title, topic),
     
-    FOREIGN KEY (username) REFERENCES User(username)
+    FOREIGN KEY (uid) REFERENCES User(uid)
         ON DELETE SET NULL, -- Allow questions to remain even if the author is deleted
     FOREIGN KEY (topic) REFERENCES Topic(topic_name)
 );
 
 Create TABLE Answer (
     aid int AUTO_INCREMENT PRIMARY KEY,
-	question int NOT NULL,
-    username varchar(64),
+	qid int NOT NULL,
+    uid int,
     body text NOT NULL,
     dt_created datetime DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (question)
+    FOREIGN KEY (qid)
         REFERENCES Question(qid)
         ON DELETE CASCADE,
-    FOREIGN KEY (username)
-        REFERENCES User(username)
+    FOREIGN KEY (uid)
+        REFERENCES User(uid)
         ON DELETE SET NULL -- Allow answers to remain even if the author is deleted
 );
 
 CREATE TABLE PinnedAnswer (
-    question int NOT NULL,
-    answer int NOT NULL,
-    PRIMARY KEY (question), -- Each question can have 0 or 1 pinned answers
-    FOREIGN KEY (question)
+    qid int NOT NULL,
+    aid int NOT NULL,
+    PRIMARY KEY (qid), -- Each question can have 0 or 1 pinned answers
+    FOREIGN KEY (qid)
         REFERENCES Question(qid)
         ON DELETE CASCADE,
-    FOREIGN KEY (answer)
+    FOREIGN KEY (aid)
         REFERENCES Answer(aid)
         ON DELETE CASCADE
 );
 
 
 CREATE TABLE QuestionRating (
-	question int,
-    username varchar(64),
+	qid int,
+    uid int,
     is_upvote bool, -- True if upvote, False if downvote, NOT EXIST if no vote
 
-    PRIMARY KEY(question, username), -- Uniqueness enforces 1:1 relationship
-    FOREIGN KEY(question)
+    PRIMARY KEY(qid, uid), -- Uniqueness enforces 1:1 relationship
+    FOREIGN KEY(qid)
         REFERENCES Question(qid)
         ON DELETE CASCADE,
-    FOREIGN KEY (username)
-        REFERENCES User(username)
+    FOREIGN KEY (uid)
+        REFERENCES User(uid)
         ON DELETE CASCADE
 );
 
 CREATE TABLE AnswerRating (
-    answer int,
-    username varchar(64),
+    aid int,
+    uid int,
     is_upvote bool,
 
-    PRIMARY KEY(answer, username),
-    FOREIGN KEY (answer)
+    PRIMARY KEY(aid, uid),
+    FOREIGN KEY (aid)
         REFERENCES Answer(aid)
         ON DELETE CASCADE,
-    FOREIGN KEY (username)
-        REFERENCES User(username)
+    FOREIGN KEY (uid)
+        REFERENCES User(uid)
         ON DELETE CASCADE
 );
 

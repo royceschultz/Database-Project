@@ -1,9 +1,40 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>{{user.username}}'s Profile</h1>
+<div class="d-flex">
+    <h1>{{user.username}}'s Profile</h1>
+    <a href="{{ url_for('edit_profile') }}">
+        <button class="btn btn-primary mx-3">Edit Profile</button>
+    </a>
+</div>
+
 {% if is_self %}
-<p>Edit Profile</p>
+<!-- Button to edit profile -->
+
+
 {% endif %}
-{{user}}
+<div>
+    <table>
+        <tr>
+            <td>Username</td>
+            <td>{{user.username}}</td>
+        </tr>
+        <tr>
+            <td>Email</td>
+            <td>{{user.email}}</td>
+        </tr>
+        <tr>
+            <td>Date Joined</td>
+            <td>{{user.dt_created}}</td>
+        </tr>
+        <tr>
+            <td>Location</td>
+            <td>{{user.city}}, {{user.state}}, {{user.country}}</td>
+        </tr>
+        <tr>
+            <td>About</td>
+            <td>{{user.bio}}</td>
+        </tr>
+    </table>
+</div>
 {% endblock %}
