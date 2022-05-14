@@ -1,6 +1,24 @@
 <!-- Search Form -->
 <form action="{{ url_for('search') }}" method="get">
-    <label for="search">Search:</label>
-    <input type="text" name="search" id="search" value="">
+    <div class="form-group">
+        <label for="search">Search:</label>
+        <input type="text" name="q" id="search" value="{{request.args.get('q', '')}}" required>
+    </div>
+    {% if request.endpoint in ['home', 'search'] and request.args.get('q') %}
+    <!-- Advanced filters -->
+    <!-- Title Weight -->
+    <label for="title_weight">Title Weight:</label>
+    <input type="number" name="title_weight" id="title_weight" value="{{request.args.get('title_weight', 1)}}">
+    <br>
+    <!-- Body Weight -->
+    <label for="body_weight">Body Weight:</label>
+    <input type="number" name="body_weight" id="body_weight" value="{{request.args.get('body_weight', 1)}}">
+    <br>
+    <!-- Answer Weight -->
+    <label for="answer_weight">Answer Weight:</label>
+    <input type="number" name="answer_weight" id="answer_weight" value="{{request.args.get('answer_weight', 1)}}">
+    <br>
+    {% endif %}
+
     <input type="submit" value="Search">
 </form>

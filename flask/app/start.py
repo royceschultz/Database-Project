@@ -327,7 +327,61 @@ def pin_answer():
 
 @app.route('/search')
 def search():
-    return render_template('search.html')
+    q = request.args.get('q')
+    processed_q = ', '.join(f'ROW("{word}")' for word in q.split(' '))
+
+    title_weight = request.args.get('title_weight', 1)
+    body_weight = request.args.get('body_weight', 1)
+    answer_weight = request.args.get('answer_weight', 1)
+
+    query = f'''
+        WITH
+    Keywords(keyword) AS (VALUES
+        {processed_q}
+    ),
+    QuestionTitleMatches(qid, n_title_matches) AS (
+        SELECT qid, count(*) as n_title_matches
+        FROM Question
+            JOIN Keywords
+        WHERE title RLIKE CONCAT('(^|\b)', keyword, '($|\b)')
+        GROUP BY qid
+    ),
+    QuestionBodyMatches(qid, n_body_matches) AS (
+        SELECT qid, count(*) as n_title_matches
+        FROM Question
+            JOIN Keywords
+        WHERE body RLIKE CONCAT('(^|\b)', keyword, '($|\b)')
+        GROUP BY qid
+    ),
+    AnswerMatches(qid, n_answer_matches) AS (
+        SELECT qid, count(*) as n_answer_matches
+        FROM Answer
+            JOIN Keywords
+        WHERE body RLIKE CONCAT('(^|\b)', keyword, '($|\b)')
+        GROUP BY qid
+    ),
+    AllMatches(qid, n_title_matches, n_body_matches, n_answer_matches) AS (
+        SELECT Q.qid,
+            COALESCE(n_title_matches, 0) as n_title_matches,
+            COALESCE(n_body_matches, 0) as n_body_matches,
+            COALESCE(n_answer_matches, 0) as n_answer_matches
+        FROM Question AS Q
+            LEFT JOIN QuestionTitleMatches AS T ON Q.qid = T.qid
+            LEFT JOIN QuestionBodyMatches AS B ON Q.qid = B.qid
+            LEFT JOIN AnswerMatches AS A ON Q.qid = A.qid
+    ),
+    Relevance(qid, relevance) AS (
+        SELECT qid,
+            ({title_weight} * n_title_matches + {body_weight} * n_body_matches + {answer_weight} * n_answer_matches) as relevance
+        FROM AllMatches
+    )
+    SELECT Relevance.relevance, QuestionScore.*
+    FROM Relevance NATURAL JOIN QuestionScore
+    ORDER BY relevance DESC;
+    '''
+    conn = database.Connect()
+    results = conn.execute(query).fetchall()
+    return render_template('search.html', results=results)
 
 @app.before_request
 def before_request():

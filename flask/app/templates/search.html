@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    {% for result in results %}
+        {% with question=result %}
+            {% include 'components/question.html' %}
+        {% endwith %}
+    {% endfor %}
+</div>    
+{% endblock %}

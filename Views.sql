@@ -3,10 +3,11 @@ DROP VIEW IF EXISTS QuestionScore;
 DROP VIEW IF EXISTS AnswerScore;
 
 CREATE VIEW QuestionScore AS
-SELECT Question.*, SUM(IF(QuestionRating.is_upvote IS NULL, 1, IF(QuestionRating.is_upvote, 10,-1))) AS score, User.username
+SELECT Question.*, SUM(IF(QuestionRating.is_upvote IS NULL, 1, IF(QuestionRating.is_upvote, 10,-1))) AS score, User.username, COUNT(DISTINCT aid) as n_answers
 FROM Question
 LEFT JOIN QuestionRating ON Question.qid=QuestionRating.qid
 JOIN User on Question.uid=User.uid
+LEFT JOIN Answer on Question.qid=Answer.qid
 GROUP BY qid;
 
 CREATE VIEW AnswerScore AS

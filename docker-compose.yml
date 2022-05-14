@@ -13,13 +13,13 @@ services:
     volumes:
       - ./data:/var/lib/mysql
 
-  webserver:
-    build: webserver
-    container_name: webserver
-    ports:
-      - 80:80
-    volumes:
-      - ./webserver:/var/www/html
+  # webserver:
+  #   build: webserver
+  #   container_name: webserver
+  #   ports:
+  #     - 80:80
+  #   volumes:
+  #     - ./webserver:/var/www/html
 
   flask:
     build: './flask'

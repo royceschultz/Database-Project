@@ -1,7 +1,16 @@
-<div>
+<div class="card">
+    <p>
+        Query Relevance: {{ question.relevance }}
+    </p>
+    <p>
+        Score: {{ question.score }}
+    </p>
     <a href="{{ url_for('question', question_id=question.qid) }}">
         <h2>{{ question.title }}</h2>
     </a>
+    <p>
+        number of answers: {{ question.n_answers }}
+    </p>
     <div class="d-flex flex-row">
         <p class="text-muted">
             {{ question.dt_created }}
