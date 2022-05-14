@@ -1,29 +1,70 @@
-<div class="card">
+<div class="card px-5">
+    {% if 'relevance' in question%}
     <p>
-        Query Relevance: {{ question.relevance }}
+        Relevance: {{ question.relevance }}
     </p>
-    <p>
-        Score: {{ question.score }}
-    </p>
-    <a href="{{ url_for('question', question_id=question.qid) }}">
-        <h2>{{ question.title }}</h2>
-    </a>
-    <p>
-        {{ question.body }}
-    </p>
-    <p>
-        number of answers: {{ question.n_answers }}
-    </p>
-    <p>
-        Topic: {{ question.topic}}
-    </p>
-    <div class="d-flex flex-row">
-        <p class="text-muted">
-            {{ question.dt_created }}
-        </p>
-        <p class="text-muted pl-2">Author:</p>
-        <a href="{{ url_for('profile', username=question.username) }}">
-            <p>{{ question.username }}</p>
-        </a>
+    {% endif %}
+    <div class="d-flex my-3">
+        <!-- Voting Forms -->
+        <div class="pr-3">
+            <!-- Upvote Form -->
+            <form action="{{ url_for('vote_question') }}" method="post">
+                <!-- CSRF Token -->
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="question_id" value="{{ question.qid }}">
+                <input type="hidden" name="vote" value="1">
+                <button type="submit" class="btn btn-success">
+                    <!-- up arrow svg -->
+                    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-up-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-10.646.354a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 6.207V11a.5.5 0 0 1-1 0V6.207L5.354 8.354z"/>
+                    </svg>
+                </button>
+            </form>
+            <!-- Question Score -->
+            <p class="text-center my-auto">
+                {{ question.score }}
+            </p>
+            <!-- Downvote form -->
+            <form action="{{ url_for('vote_question') }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="question_id" value="{{ question.qid }}">
+                <input type="hidden" name="vote" value="-1">
+                <button type="submit" class="btn btn-danger">
+                    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-down-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 5.5a.5.5 0 0 0-1 0v4.793L5.354 7.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 9.793V5.5z"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+        <div class="w-100">
+            <a href="{{ url_for('question', question_id=question.qid) }}">
+                <h2>{{ question.title }}</h2>
+            </a>
+            <!-- Question Info -->
+            <div class="d-flex justify-content-between">
+                <div>
+                    <p class='text-muted pr-2'>
+                        Topic:&nbsp;{{ question.topic}}
+                    </p>
+                    <p class="text-muted">
+                        {{ question.n_answers }}&nbsp;answers
+                    </p>
+                </div>
+                <div>
+                    <p class="text-muted">
+                        Posted: {{ question.dt_created }}
+                    </p>
+                    <div class="d-flex flex-row float-right">
+                        <p class="text-muted">Author:&nbsp;</p>
+                        <a href="{{ url_for('profile', username=question.username) }}">
+                            <p>{{ question.username }}</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <p>
+                {{ question.body }}
+            </p>
+        </div>
     </div>
 </div>

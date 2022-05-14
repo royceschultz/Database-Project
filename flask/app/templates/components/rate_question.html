@@ -1,0 +1,31 @@
+<!-- Voting Forms -->
+<div class="pr-3">
+    <!-- Upvote Form -->
+    <form action="{{ url_for('vote_question') }}" method="post">
+        <!-- CSRF Token -->
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="question_id" value="{{ question_id }}">
+        <input type="hidden" name="vote" value="1">
+        <button type="submit" class="btn btn-success">
+            <!-- up arrow svg -->
+            <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-up-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-10.646.354a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 6.207V11a.5.5 0 0 1-1 0V6.207L5.354 8.354z"/>
+            </svg>
+        </button>
+    </form>
+    <!-- Question Score -->
+    <p class="text-center my-auto">
+        {{ question.score }}
+    </p>
+    <!-- Downvote form -->
+    <form action="{{ url_for('vote_question') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="question_id" value="{{ question_id }}">
+        <input type="hidden" name="vote" value="-1">
+        <button type="submit" class="btn btn-danger">
+            <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-down-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 5.5a.5.5 0 0 0-1 0v4.793L5.354 7.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 9.793V5.5z"/>
+            </svg>
+        </button>
+    </form>
+</div>

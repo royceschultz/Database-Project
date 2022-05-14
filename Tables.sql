@@ -17,7 +17,10 @@ CREATE TABLE User (
     state varchar(256),
     country varchar(256),
     bio text,
-    dt_created datetime DEFAULT CURRENT_TIMESTAMP
+    dt_created datetime DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE (username),
+    UNIQUE (email)
 );
 
 CREATE TABLE UserSession (

@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, MetaData, Table
 from faker import Faker
 import random
+import time
 
 engine = create_engine('mysql+pymysql://root:example@localhost:3306/QueueOverflow') # , echo=True)
 metadata = MetaData()
@@ -12,7 +13,7 @@ PinnedAnswer = Table('PinnedAnswer', metadata, autoload=True, autoload_with=engi
 QuestionRating = Table('QuestionRating', metadata, autoload=True, autoload_with=engine)
 AnswerRating = Table('AnswerRating', metadata, autoload=True, autoload_with=engine)
 
-N = 32
+N = 512
 N_USERS = N
 N_QUESTIONS = 2*N
 N_ANSWERS = 4*N
@@ -53,6 +54,7 @@ with engine.connect() as connection:
         ins = Question.insert().values(uid=random.choice(USERS), title=F.sentence(), body=F.text(), topic=random.choice(TOPICS))
         result = connection.execute(ins)
         QUESTIONS.append(result.inserted_primary_key[0])
+        time.sleep(0.1)
     
     # Generate answers
     print("Generating answers...")
@@ -60,6 +62,7 @@ with engine.connect() as connection:
         ins = Answer.insert().values(uid=random.choice(USERS), qid=random.choice(QUESTIONS), body=F.text())
         result = connection.execute(ins)
         ANSWERS.append(result.inserted_primary_key[0])
+        time.sleep(0.1)
 
     # Generate question ratings
     print("Generating question ratings...")

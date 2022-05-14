@@ -10,9 +10,9 @@
         <select name="topic" id="topic">
             <option value="">All</option>
             <option value="Programming" {{request.args.get('topic') == 'Programming' and 'selected'}}>Programming</option>
-            <option value="Python" {{request.args.get('topic') == 'Python' and 'selected'}}>Python</option>
-            <option value="Javascript" {{request.args.get('topic') == 'Javascript' and 'selected'}}>Javascript</option>
-            <option value="SQL" {{request.args.get('topic') == 'SQL' and 'selected'}}>SQL</option>
+            <option value="Python" {{request.args.get('topic') == 'Python' and 'selected'}}>- Python</option>
+            <option value="Javascript" {{request.args.get('topic') == 'Javascript' and 'selected'}}>- Javascript</option>
+            <option value="SQL" {{request.args.get('topic') == 'SQL' and 'selected'}}>- SQL</option>
             <option value="Announcements" {{request.args.get('topic') == 'Announcements' and 'selected'}}>Announcements</option>
             <option value="General" {{request.args.get('topic') == 'General' and 'selected'}}>General</option>
             <option value="Misc" {{request.args.get('topic') == 'Misc' and 'selected'}}>Misc</option>
@@ -38,6 +38,11 @@
         <br>
     </div>
     <div class="form-group">
+        <label for="min_relevance">Min Relevance:</label>
+        <input type="number" name="min_relevance" id="min_relevance" value="{{request.args.get('min_relevance', 0)}}">
+        <br>
+    </div>
+    <div class="form-group">
         <!-- Order by dropdown -->
         <label for="order_by">Order By:</label>
         <select name="order_by" id="order_by">
@@ -49,6 +54,5 @@
     </div>
     <a href="{{ url_for('search', q=request.args.get('q', '')) }}">Clear Filters</a>
     {% endif %}
-    <br>
     <input type="submit" value="Search">
 </form>

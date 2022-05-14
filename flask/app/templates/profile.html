@@ -3,25 +3,15 @@
 {% block content %}
 <div class="d-flex">
     <h1>{{user.username}}'s Profile</h1>
-    {% if is_self %}
+    {% if user.username == g.username %}
     <a href="{{ url_for('edit_profile') }}">
         <button class="btn btn-primary mx-3">Edit Profile</button>
     </a>
     {% endif %}
-    <div>
-        <!-- Button to user questions -->
-        <a href="{{ url_for('profile_questions', username=user.username) }}">
-            <button class="btn btn-primary">Questions</button>
-        </a>
-        <!-- Navigate to submitted answers -->
-        <a href="{{ url_for('profile_answers', username=user.username) }}">
-            <button class="btn btn-primary">Answers</button>
-        </a>
-    </div>
 </div>
 
 <div>
-    <table>
+    <table class="table">
         <tr>
             <td>Username</td>
             <td>{{user.username}}</td>
@@ -43,5 +33,17 @@
             <td>{{user.bio}}</td>
         </tr>
     </table>
+</div>
+
+
+<div class="py-2">
+    <!-- Button to user questions -->
+    <a href="{{ url_for('profile_questions', username=user.username) }}">
+        <button class="btn btn-primary">Questions</button>
+    </a>
+    <!-- Navigate to submitted answers -->
+    <a href="{{ url_for('profile_answers', username=user.username) }}">
+        <button class="btn btn-primary">Answers</button>
+    </a>
 </div>
 {% endblock %}

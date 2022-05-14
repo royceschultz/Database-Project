@@ -3,47 +3,52 @@
 {% block content %}
 
 <div class="d-flex flex-row mb-3">
-    <div class="mr-4">
-        <form action="{{ url_for('vote_question') }}" method="post">
-            <!-- CSRF Token -->
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="hidden" name="question_id" value="{{ question.qid }}">
-            <input type="hidden" name="vote" value="1">
-            <button type="submit" class="btn btn-primary">
-                <!-- up arrow svg -->
-                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-up-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-10.646.354a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 6.207V11a.5.5 0 0 1-1 0V6.207L5.354 8.354z"/>
-                </svg>
-            </button>
-        </form>
-        <p>{{question.score}}</p>
-
-        <form action="{{ url_for('vote_question') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="hidden" name="question_id" value="{{ question.qid }}">
-            <input type="hidden" name="vote" value="-1">
-            <button type="submit" class="btn btn-primary">
-                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-down-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 5.5a.5.5 0 0 0-1 0v4.793L5.354 7.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 9.793V5.5z"/>
-                </svg>
-            </button>
-        </form>
-    </div>
-    
-    <div>
-        <h1>{{ question.title }}</h1>
-        <p>{{ question.body }}</p>
+    {% with question_id = question.id %}
+        {% include 'components/rate_question.html' %}
+    {% endwith %}
+    <div class="w-100">
+        <a href="{{ url_for('question', question_id=question.qid) }}">
+            <h2>{{ question.title }}</h2>
+        </a>
+        <!-- Question Info -->
+        <div class="d-flex justify-content-between">
+            <div>
+                <p class='text-muted pr-2'>
+                    Topic:&nbsp;{{ question.topic}}
+                </p>
+                <p class="text-muted">
+                    {{ question.n_answers }}&nbsp;answers
+                </p>
+            </div>
+            <div>
+                <p class="text-muted">
+                    Posted: {{ question.dt_created }}
+                </p>
+                <div class="d-flex flex-row float-right">
+                    <p class="text-muted">Author:&nbsp;</p>
+                    <a href="{{ url_for('profile', username=question.username) }}">
+                        <p>{{ question.username }}</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <p>
+            {{ question.body }}
+        </p>
     </div>
 </div>
 
 
 <!-- Submit Answer Form -->
-<div class="my-5">
+<div class="my-4">
     <form action="{{ url_for('submit_answer') }}" method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label for="answer">Answer</label>
-        <input type="text" id="answer" name='answer' placeholder="Answer">
         <input type="hidden" name="question_id" value="{{ question.qid }}">
+        <div class="form-group">
+            <label for="answer">Submit an Answer</label>
+            <textarea class='form-control' type="text" id="answer" name='answer' placeholder="Answer">
+            </textarea>
+        </div>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 </div>
@@ -53,41 +58,50 @@
     <div class="card">
         <div class="d-flex flex-row p-2">
             <div class="mr-4">
+                <div> <!-- Pin form -->
+                    {% if answer.is_pinned %}
+                    <p class="text-center">
+                        Pined Answer
+                    </p>
+                    {% endif %}
+                    {% if g.user==question.uid %}
+                    <!-- TODO: Upgrade to post form with CSRF protection -->
+                    <a href="{{ url_for('pin_answer', answer_id=answer.aid)}}">
+                        <p class="text-center">
+                            {% if answer.is_pinned %}
+                            Unpin
+                            {% else %}
+                                Pin
+                            {% endif %}
+                        </p>
+                    </a>
+                    {% endif %}
+                </div>
+                <!-- Upvote Answer Form -->
                 <form action="{{ url_for('vote_answer') }}", method="post">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="answer_id" value="{{ answer.aid }}">
                     <input type="hidden" name="vote" value="1">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-success">
                         <!-- up arrow svg -->
                         <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-up-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-10.646.354a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 6.207V11a.5.5 0 0 1-1 0V6.207L5.354 8.354z"/>
                         </svg>
                     </button>
                 </form>
-                <p>{{answer.score}}</p>
-                <form action="{{ url_for('vote_answer') }}">
+                <p class="text-center my-auto">{{answer.score}}</p>
+                <!-- Downvote Answer Form -->
+                <form action="{{ url_for('vote_answer') }}" method="post">
+                    <!-- CSRF Token -->
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="answer_id" value="{{ answer.aid }}">
                     <input type="hidden" name="vote" value="-1">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-danger">
                         <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-down-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 5.5a.5.5 0 0 0-1 0v4.793L5.354 7.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 9.793V5.5z"/>
                         </svg>
                     </button>
                 </form>
-                <div>
-                    {% if answer.is_pinned %}
-                        Pined Answer
-                    {% endif %}
-                    {% if g.user==question.uid %}
-                    <a href="{{ url_for('pin_answer', answer_id=answer.aid)}}">
-                        {% if answer.is_pinned %}
-                            Unpin
-                        {% else %}
-                            Pin
-                        {% endif %}
-                    </a>
-                    {% endif %}
-                </div>
             </div>
             <div>
                 <p>

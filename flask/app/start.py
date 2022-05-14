@@ -4,9 +4,15 @@ from flask import request, Response, render_template, url_for, redirect, g
 from flask_wtf.csrf import CSRFProtect
 import random
 
+# Logging output fix
+import sys
+
 # local imports
 import database
 import auth
+
+# CONFIG
+DEBUG = True
 
 app = Flask(__name__)
 csrf = CSRFProtect()
@@ -14,11 +20,12 @@ csrf.init_app(app)
 # CSRF Config
 app.config['SECRET_KEY'] = 'any secret string'
 
+
 @app.route("/")
 def home():
     # Home page for all users
     # Shows recently posted questions
-    PAGE_SIZE = 5
+    PAGE_SIZE = 10
     page = request.args.get('page', 1, type=int)
     offset = (page - 1) * PAGE_SIZE
     query = database.QuestionScore.select().order_by(database.QuestionScore.c.dt_created.desc()).offset(offset).limit(PAGE_SIZE)
@@ -28,6 +35,7 @@ def home():
         for row in res:
             questions.append(row)
     return render_template('index.html', questions=questions, page=page, next_page=(len(questions) == PAGE_SIZE))
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -41,15 +49,18 @@ def register():
         confirm_password = request.form['password_confirmation']
 
         if password != confirm_password:
-            return render_template('register.html', error="Passwords do not match")
-        
+            return render_template('register.html', message="Passwords do not match")
+        if len(username) < 3:
+            return render_template('register.html', message="Username must be at least 3 characters")
+        if len(password) < 3:
+            return render_template('register.html', message="Password must be at least 3 characters")
         insert_query = database.User.insert().values(username=username, email=email, password=password)
         try:
             database.Connect().execute(insert_query)
             return redirect(url_for('login'))
         except Exception as e:
-            print(e)
             return render_template('register.html', message=e)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -80,6 +91,7 @@ def login():
     response.set_cookie('session_token', ';'.join([str(user.uid), session_id]))
     return response
 
+
 @app.route('/logout')
 @auth.require_login
 def logout():
@@ -90,6 +102,7 @@ def logout():
         database.Connect().execute(delete_query)
         g.bad_cookie = True
     return redirect(url_for('login'))
+
 
 @app.route('/profile/<username>', methods=['GET', 'POST'])
 @auth.require_login
@@ -102,6 +115,7 @@ def profile(username):
         is_self = (g.user == username)
     return render_template('profile.html', is_self=is_self, user=user)
 
+
 @app.route('/profile/questions/<username>', methods=['GET', 'POST'])
 @auth.require_login
 def profile_questions(username):
@@ -113,6 +127,7 @@ def profile_questions(username):
     questions = conn.execute(query).fetchall()
     return render_template('profile_questions.html', questions=questions, username=username)
 
+
 @app.route('/profile/answers/<username>', methods=['GET', 'POST'])
 @auth.require_login
 def profile_answers(username):
@@ -123,7 +138,6 @@ def profile_answers(username):
     query = database.AnswerScore.select().where(database.AnswerScore.c.uid == uid)
     answers = conn.execute(query).fetchall()
     return render_template('profile_answers.html', answers=answers, username=username)
-
 
 
 @app.route('/profile/edit', methods=['GET', 'POST'])
@@ -193,6 +207,7 @@ def edit_profile():
                 return render_template('profile_edit.html', message=e, user=request.form) 
         return redirect(url_for('profile', username=new_username))
 
+
 @app.route('/post/question', methods=['GET', 'POST'])
 @auth.require_login
 def new_question():
@@ -213,6 +228,7 @@ def new_question():
         except Exception as e:
             return render_template('new_question.html', message=e)
 
+
 @app.route('/question/<int:question_id>')
 def question(question_id):
     # View for a specific question
@@ -225,6 +241,7 @@ def question(question_id):
     answers = database.Connect().execute(answers_query).fetchall()
     print(len(answers))
     return render_template('question.html', question=question, answers=answers)
+
 
 @app.route('/post/answer', methods=['POST'])
 @auth.require_login
@@ -239,6 +256,7 @@ def submit_answer():
         return redirect(url_for('question', question_id=question_id))
     except Exception as e:
         return redirect(url_for('home', message=e))
+
 
 @app.route('/vote/question', methods=['POST'])
 @auth.require_login
@@ -265,6 +283,7 @@ def vote_question():
         '''
         database.Connect().execute(vote_query)
     return redirect(url_for('question', question_id=question_id))
+
 
 @app.route('/vote/answer', methods=['POST'])
 @auth.require_login
@@ -295,6 +314,7 @@ def vote_answer():
     query = database.Answer.select().where(database.Answer.c.aid == answer_id)
     question_id = database.Connect().execute(query).fetchone().qid
     return redirect(url_for('question', question_id=question_id))
+
 
 @app.route('/pin/answer')
 @auth.require_login
@@ -328,20 +348,27 @@ def pin_answer():
     return redirect(url_for('question', question_id=question_id))
 
 
-
 @app.route('/search')
 def search():
-    COURSE_LIMIT = 1024
+    COURSE_LIMIT = 2048
     FINE_LIMIT = 64
 
     q = request.args.get('q')
-    processed_q = ', '.join(f'ROW("{word}")' for word in q.split(' '))
+    words = q.strip().split(' ')
+    n_grams = []
+    for i in range(len(words)-1):
+        n_grams.append(' '.join(words[i:i+2]))
+    for i in range(len(words)-2):
+        n_grams.append(' '.join(words[i:i+3]))
+    words += n_grams
+    processed_q = ', '.join(f'ROW("{word}")' for word in words)
     topic = request.args.get('topic', '')
 
     title_weight = request.args.get('title_weight', 1)
     body_weight = request.args.get('body_weight', 1)
     answer_weight = request.args.get('answer_weight', 1)
     min_answers = request.args.get('min_answers', 0)
+    min_relevance = request.args.get('min_relevance', 0)
     order_by = request.args.get('order_by', 'relevance')
 
     query = f'''
@@ -353,7 +380,7 @@ def search():
         SELECT qid, count(*) as n_title_matches
         FROM Question
             JOIN Keywords
-        WHERE title RLIKE CONCAT('(^|\b)', keyword, '($|\b)')
+        WHERE title RLIKE CONCAT('(^| )', keyword, '($| )')
         GROUP BY qid
         LIMIT {COURSE_LIMIT}
     ),
@@ -361,7 +388,7 @@ def search():
         SELECT qid, count(*) as n_title_matches
         FROM Question
             JOIN Keywords
-        WHERE body RLIKE CONCAT('(^|\b)', keyword, '($|\b)')
+        WHERE body RLIKE CONCAT('(^| )', keyword, '($| )')
         GROUP BY qid
         LIMIT {COURSE_LIMIT}
     ),
@@ -369,7 +396,7 @@ def search():
         SELECT qid, count(*) as n_answer_matches
         FROM Answer
             JOIN Keywords
-        WHERE body RLIKE CONCAT('(^|\b)', keyword, '($|\b)')
+        WHERE body RLIKE CONCAT('(^| )', keyword, '($| )')
         GROUP BY qid
         LIMIT {COURSE_LIMIT}
     ),
@@ -393,12 +420,15 @@ def search():
     JOIN Topic on QuestionScore.topic = Topic.topic_name
     WHERE n_answers >= {min_answers}
         AND ('{topic}' LIKE '' OR Topic.topic_name = '{topic}' OR Topic.parent_topic = '{topic}')
+        AND relevance > {min_relevance}
     ORDER BY {order_by} DESC
     LIMIT {FINE_LIMIT};
     '''
+    print(query)
     conn = database.Connect()
     results = conn.execute(query).fetchall()
     return render_template('search.html', results=results)
+
 
 @app.before_request
 def before_request():
@@ -424,8 +454,11 @@ def before_request():
         else:
             g.bad_cookie=True
 
+
 @app.after_request
 def after_request(response):
+    if DEBUG:
+        sys.stdout.flush()
     # Maintain user cookies
     if 'bad_cookie' in g:
         response.set_cookie('session_token', '', expires=0)
