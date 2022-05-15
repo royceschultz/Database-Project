@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="d-flex flex-row mb-3">
-    {% with question_id = question.id %}
+    {% with question_id = question.qid %}
         {% include 'components/rate_question.html' %}
     {% endwith %}
     <div class="w-100">
